@@ -6,6 +6,7 @@ htpd \- HTTP Time Protocol daemon
 .SH SYNOPSIS
 .B htpd
 .RB [ " \-h " ]
+.RB [ "\-P proxy" ]
 .RB [ "\-H host" ]
 .RB [ "\-H host" ]
 .RB [ ... ]
@@ -13,9 +14,7 @@ htpd \- HTTP Time Protocol daemon
 .SH DESCRIPTION
 .B htpd
 is a daemon that manages the time using "HTP" (the HTTP Time Protocol) to set the system clock periodically
-from remote web servers.  The configuration file (@sysconfdir@/htpd.conf) is not used if
-.I libconfig
-is not available.
+from remote web servers.
 
 .SH OPTIONS
 .B "-h"
@@ -32,7 +31,15 @@ to update the time.  Many hosts can be specified by multiple
 .B "-H"
 options.  The
 .I host
-parameter can be in the format of hostname:port.
+parameter can be in the format of hostname:port.  If the port is omited 80 is assumed.
+.RE
+
+.B "-P"
+.I proxy
+.RS
+Specify an HTTP proxy to send requests through.  The
+.I proxy
+parameter can be in the format of hostname:port.  If the port is omited 8080 is assumed.
 .RE
 
 .SH FILES

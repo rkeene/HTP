@@ -12,6 +12,8 @@ at startup.  The configuration file is in white space delimited format.  An exam
 .nf
 	Host www.oc9.org
 	Host www.kernel.org
+
+	ProxyHost 10.13.0.1:8090
 .fi
 
 Explanation of configuration elements:
@@ -21,11 +23,19 @@ Explanation of configuration elements:
 .RS
 Specify an additional web server to query for the time.  Multiple hosts may be specified, atleast one is required (either in the configuration file or on the command line).  The
 .I host
-parameter can be in the format of hostname:port.
+parameter can be in the format of hostname:port.  If the port is omited 80 is assumed.
+.RE
+
+.TP
+.BI "ProxyHost " proxy
+.RS
+Specify an HTTP proxy to send requests through.  The
+.I proxy
+parameter can be in the format of hostname:port.  If the port is omited 8080 is assumed.
 .RE
 
 .SH FILES
-@sysconfdir@/swapd.conf
+@sysconfdir@/htpd.conf
 
 .SH "SEE ALSO"
 .BR htpd (8),

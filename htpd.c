@@ -3,6 +3,12 @@
 #endif
 #include "win32.h"
 
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
 #endif
@@ -33,6 +39,8 @@
 
 static struct timeserver_st timeservers[128];
 static unsigned int timeind = 0;
+char *http_proxy = NULL;
+uint16_t http_proxy_port = 0;
 
 static void daemonize(void) {
 	pid_t pid;
@@ -56,13 +64,51 @@ static void daemonize(void) {
 	return;
 }
 
-#ifdef HAVE_LIBCONFIG
+int set_proxy(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
+	char *host = NULL, *portstr = NULL;
+	size_t hostlen = 0;
+	int port = -1;
+
+	if (value == NULL) {
+		fprintf(stderr, "Error: Argument required.\n");
+		return(LC_CBRET_ERROR);
+	}
+
+	hostlen = strlen(value) + 1;
+	if (hostlen == 1) {
+		fprintf(stderr, "Error: Argument required.\n");
+		return(LC_CBRET_ERROR);
+	}
+
+	host = malloc(hostlen);
+	if (host == NULL) {
+		fprintf(stderr, "Error: Could not allocate memory.\n");
+		return(LC_CBRET_ERROR);
+	}
+	memcpy(host, value, hostlen);
+
+	portstr = strchr(host, ':');
+	if (portstr != NULL) {
+		portstr[0] = '\0';
+
+		portstr++;
+		port = atoi(portstr);
+		if (port <= 0) {
+			fprintf(stderr, "Error: Invalid port specified: %s:%s.\n", host, portstr);
+			free(host);
+			return(LC_CBRET_ERROR);
+		}
+	} else {
+		port = 8080;
+	}
+
+	http_proxy = host;
+	http_proxy_port = port;
+
+	return(LC_CBRET_OKAY);
+}
+
 int add_server(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
-#else
-int add_server(const char *value) {
-#define LC_CBRET_ERROR (-1)
-#define LC_CBRET_OKAY (0)
-#endif
 	char *host = NULL, *portstr = NULL;
 	size_t hostlen = 0;
 	int port = -1;
@@ -115,12 +161,8 @@ int add_server(const char *value) {
 	return(LC_CBRET_OKAY);
 }
 
-#ifdef HAVE_LIBCONFIG
 int print_help(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
-#else
-int print_help(const char *value) {
-#endif
-	printf("Usage: htpd [-H <host> [-H <host> [...]]]\n");
+	printf("Usage: htpd [-P <proxy>] [-H <host> [-H <host> [...]]]\n");
 	printf("   Where each `host' is in format of:\n");
 	printf("       hostname[:port]\n");
 
@@ -129,33 +171,21 @@ int print_help(const char *value) {
 
 int main(int argc, char *argv[]) {
 	unsigned int totaltimeservers = 0;
-	unsigned int sleeptime = 86400;
+	unsigned int maxsleeptime = 43200, minsleeptime = 4096, sleeptime = minsleeptime;
+	double delta;
 	time_t newtime = 0;
 	int lc_p_ret = 0;
 
 	htp_init();
 
-#ifdef HAVE_LIBCONFIG
 	lc_register_callback("Host", 'H', LC_VAR_STRING, add_server, NULL);
+	lc_register_callback("ProxyHost", 'P', LC_VAR_STRING, set_proxy, NULL);
 	lc_register_callback(NULL, 'h', LC_VAR_NONE, print_help, NULL);
 	lc_p_ret = lc_process(argc, argv, "htpd", LC_CONF_SPACE, SYSCONFDIR "/htpd.conf");
 	if (lc_p_ret < 0) {
 		fprintf(stderr, "Error processing configuration information: %s.\n", lc_geterrstr());
 		return(EXIT_FAILURE);
 	}
-#else
-	unsigned int argind = 0;
-
-	for (argind = 1; argind < argc; argind++) {
-		if (argv[argind][0] == '-') {
-			if (argv[argind][1] == 'h') {
-				print_help(NULL);
-			}
-			continue;
-		}
-		add_server(argv[argind]);
-	}
-#endif
 
 	totaltimeservers = timeind;
 
@@ -167,10 +197,21 @@ int main(int argc, char *argv[]) {
 	daemonize();
 
 	while (1) {
-		newtime = htp_calctime(timeservers, totaltimeservers, NULL, 0);
+		newtime = htp_calctime(timeservers, totaltimeservers, http_proxy, http_proxy_port);
 
 		if (newtime >= 0) {
-			set_clock(newtime, 1);
+			delta = set_clock(newtime, 1);
+		} else {
+			delta = 0.0;
+		}
+
+		sleeptime = sleeptime / (1 + (delta / 30.0));
+
+		if (sleeptime < minsleeptime) {
+			sleeptime = minsleeptime;
+		}
+		if (sleeptime > maxsleeptime) {
+			sleeptime = maxsleeptime;
 		}
 
 		sleep(sleeptime);

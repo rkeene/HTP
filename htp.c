@@ -68,12 +68,18 @@ static time_t mktime_from_rfc2616(const char *date) {
 	return(currtime);
 }
 
-int set_clock(time_t timeval, int allow_adj) {
-	int retval = -1;
+double set_clock(time_t timeval, int allow_adj) {
 	struct timeval tvinfo;
+	time_t currtime;
+	double retval;
+	int chkret = -1;
 #ifdef HAVE_ADJTIME
 	struct timeval tvdelta;
+#endif
 
+	currtime = time(NULL);
+
+#ifdef HAVE_ADJTIME
 	if (allow_adj) {
 		gettimeofday(&tvdelta, NULL);
 
@@ -93,24 +99,30 @@ int set_clock(time_t timeval, int allow_adj) {
 #ifdef HAVE_SETTIMEOFDAY
 	if ((tvdelta.tv_sec < 60 && tvdelta.tv_sec > -60) && allow_adj) {
 #endif
-		retval = adjtime(&tvdelta, NULL);
+		chkret = adjtime(&tvdelta, NULL);
 #ifdef HAVE_SETTIMEOFDAY
 	} else {
-		retval = -1;
+		chkret = -1;
 	}
 #endif
 
-	if (retval < 0) {
+	if (chkret < 0) {
 #endif
 #ifdef HAVE_SETTIMEOFDAY
 		tvinfo.tv_sec = timeval;
 		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
 
-		retval = settimeofday(&tvinfo, NULL);
+		chkret = settimeofday(&tvinfo, NULL);
 #endif
 #ifdef HAVE_ADJTIME
 	}
 #endif
+
+	if (chkret < 0) {
+		retval = 0.0;
+	} else {
+		retval = difftime(currtime, timeval);
+	}
 
 	return(retval);
 }

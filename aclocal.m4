@@ -42,11 +42,13 @@ AC_DEFUN(DC_ASK_OPTLIB, [
       CFLAGS="$OLDCFLAGS"
     ], [
       LIBSPEC=no
+      $8
       AC_MSG_WARN(Didn't find $5)
     ], $LIBSPECFLAGS)
   ])
   case $LIBSPEC in
   	no)
+                $8
   		AC_MSG_WARN(Support for $5 disabled)
   		;;
   	*)
@@ -73,6 +75,7 @@ AC_DEFUN(DC_ASK_OPTLIB, [
 		  ], [
 		    CFLAGS="$OLDCFLAGS"
 		    CPPFLAGS="$OLDCPPFLAGS"
+                    $8
 		    AC_MSG_ERROR(Could not find $3)
 		  ])
 		], [
