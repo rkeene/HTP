@@ -13,7 +13,7 @@ AC_DEFUN(DC_DO_NETWORK, [
 ])
 
 AC_DEFUN(DC_DO_WIN32, [
-  AC_CHECK_HEADERS(windows.h windowsx.h winsock2.h winsvc.h)
+  AC_CHECK_HEADERS(windows.h windowsx.h winsock2.h)
   AC_CHECK_LIB(wsock32, main, [
     AC_DEFINE(HAVE_LIBWSOCK32, [], [Have libwsock32])
       LIBS="${LIBS} -lwsock32"
@@ -70,8 +70,8 @@ AC_DEFUN(DC_ASK_OPTLIB, [
 		    if test -n "$6"; then
 		      AC_DEFINE($6, [1], [Define to 1 if you have $2 from $5])
 		    fi
-		    LDFLAGS="$LDFLAGS $LIBSPECFLAGS"
-		    LIBS="$LIBS -l$1"
+		    LDFLAGS="$LIBSPECFLAGS $LDFLAGS"
+		    LIBS="-l$1 $LIBS"
 		  ], [
 		    CFLAGS="$OLDCFLAGS"
 		    CPPFLAGS="$OLDCPPFLAGS"

@@ -43,6 +43,9 @@
 #ifndef HAVE_GETTIMEOFDAY
 #include "gettimeofday.h"
 #endif
+#ifndef HAVE_SETTIMEOFDAY
+#include "settimeofday.h"
+#endif
 
 #include "htp.h"
 
@@ -91,9 +94,7 @@ static time_t mktime_from_rfc2616(const char *date) {
 }
 
 double set_clock(time_t timeval, int allow_adj) {
-#ifdef HAVE_SETTIMEOFDAY
 	struct timeval tvinfo;
-#endif
 	struct timeval tvdelta;
 	time_t currtime;
 	double retval;
@@ -118,31 +119,28 @@ double set_clock(time_t timeval, int allow_adj) {
 		}
 	}
 
-#ifdef HAVE_SETTIMEOFDAY
 	if ((tvdelta.tv_sec < 60 && tvdelta.tv_sec > -60) && allow_adj) {
-#endif
 		chkret = adjtime(&tvdelta, NULL);
 		if (chkret >= 0) {
+#ifdef HAVE_SYSLOG
 			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (skew).", (double) tvdelta.tv_sec + (((double) tvdelta.tv_usec) / 1000000.0));
+#endif
 		}
-
-#ifdef HAVE_SETTIMEOFDAY
 	} else {
 		chkret = -1;
 	}
-#endif
 
 	if (chkret < 0) {
 #endif
-#ifdef HAVE_SETTIMEOFDAY
 		tvinfo.tv_sec = timeval;
 		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
 
 		chkret = settimeofday(&tvinfo, NULL);
 		if (chkret >= 0) {
+#ifdef HAVE_SYSLOG
 			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (set).", (double) (tvinfo.tv_sec - currtime) + (((double) tvinfo.tv_usec) / 1000000.0));
-		}
 #endif
+		}
 #ifdef HAVE_ADJTIME
 	}
 #endif
