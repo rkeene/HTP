@@ -190,7 +190,7 @@ int add_server(const char *shortvar, const char *var, const char *arguments, con
 }
 
 int print_help(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
-	printf("Usage: htpd [-P <proxy>] [-H <host> [-H <host> [...]]]\n");
+	printf("Usage: htpd [-M max] [-m min] [-P proxy] [-H host [-H host [...]]]\n");
 	printf("   Where each `host' is in format of:\n");
 	printf("       hostname[:port]\n");
 
@@ -199,9 +199,9 @@ int print_help(const char *shortvar, const char *var, const char *arguments, con
 
 int main(int argc, char *argv[]) {
 	unsigned int totaltimeservers = 0;
-	unsigned int maxsleeptime = 43200, minsleeptime = 4096, sleeptime = minsleeptime;
-	double delta;
 	time_t newtime = 0;
+	double delta;
+	long maxsleeptime = 43200, minsleeptime = 4096, sleeptime;
 	int lc_p_ret = 0;
 
 	htp_init();
@@ -209,11 +209,15 @@ int main(int argc, char *argv[]) {
 	lc_register_callback("Host", 'H', LC_VAR_STRING, add_server, NULL);
 	lc_register_callback("ProxyHost", 'P', LC_VAR_STRING, set_proxy, NULL);
 	lc_register_callback(NULL, 'h', LC_VAR_NONE, print_help, NULL);
+	lc_register_var("MaxSleep", LC_VAR_LONG, &maxsleeptime, 'M');
+	lc_register_var("MinSleep", LC_VAR_LONG, &minsleeptime, 'm');
 	lc_p_ret = lc_process(argc, argv, "htpd", LC_CONF_SPACE, SYSCONFDIR "/htpd.conf");
 	if (lc_p_ret < 0) {
 		fprintf(stderr, "Error processing configuration information: %s.\n", lc_geterrstr());
 		return(EXIT_FAILURE);
 	}
+
+	sleeptime = minsleeptime;
 
 	totaltimeservers = timeind;
 
@@ -241,7 +245,7 @@ int main(int argc, char *argv[]) {
 		 *  Divide sleep time by 1   if change == 5  (check as frequently)
 		 */
 		delta = fabs(delta);
-		sleeptime = ((double) sleeptime) / ((1.0 + (delta / 10.0)) / (2.0 - (delta / 10.0)));
+		sleeptime = ((double) sleeptime) / (((delta * delta) / 66.0) + 0.5);
 
 		if (sleeptime < minsleeptime) {
 			sleeptime = minsleeptime;
@@ -250,7 +254,7 @@ int main(int argc, char *argv[]) {
 			sleeptime = maxsleeptime;
 		}
 
-		syslog(LOG_INFO, "Sleeping for %u seconds.", sleeptime);
+		syslog(LOG_INFO, "Sleeping for %li seconds.", sleeptime);
 
 		sleep(sleeptime);
 	}

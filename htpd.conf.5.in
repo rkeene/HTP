@@ -10,20 +10,27 @@ is read from
 .BR htpd (8)
 at startup.  The configuration file is in white space delimited format.  An example configuration file might look something like this:
 .nf
-	Host www.oc9.org
-	Host www.kernel.org
+	MaxSleep 43200
+	MinSleep 4096
 
 	ProxyHost 10.13.0.1:8090
+
+	Host www.oc9.org
+	Host www.kernel.org
 .fi
 
 Explanation of configuration elements:
 
 .TP
-.BI "Host " host
+.BI "MaxSleep " max
 .RS
-Specify an additional web server to query for the time.  Multiple hosts may be specified, atleast one is required (either in the configuration file or on the command line).  The
-.I host
-parameter can be in the format of hostname:port.  If the port is omited 80 is assumed.
+Specify the maximum number of seconds between polling the specified hosts.  Default value is 43200 (12h).
+.RE
+
+.TP
+.BI "MinSleep " min
+.RS
+Specify the minimum number of seconds between polling the specified hosts.  Default value is 4096 (1h8m16s).   
 .RE
 
 .TP
@@ -32,6 +39,14 @@ parameter can be in the format of hostname:port.  If the port is omited 80 is as
 Specify an HTTP proxy to send requests through.  The
 .I proxy
 parameter can be in the format of hostname:port.  If the port is omited 8080 is assumed.
+.RE
+
+.TP
+.BI "Host " host
+.RS
+Specify an additional web server to query for the time.  Multiple hosts may be specified, atleast one is required (either in the configuration file or on the command line).  The
+.I host
+parameter can be in the format of hostname:port.  If the port is omited 80 is assumed.
 .RE
 
 .SH FILES

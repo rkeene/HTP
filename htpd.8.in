@@ -6,6 +6,8 @@ htpd \- HTTP Time Protocol daemon
 .SH SYNOPSIS
 .B htpd
 .RB [ " \-h " ]
+.RB [ "\-M max" ]
+.RB [ "\-m min" ]
 .RB [ "\-P proxy" ]
 .RB [ "\-H host" ]
 .RB [ "\-H host" ]
@@ -22,6 +24,26 @@ from remote web servers.
 Print usage information and exit in success.
 .RE
 
+.B "-M"
+.I max
+.RS
+Specify the maximum number of seconds between polling the specified hosts.  Default value is 43200 (12h).
+.RE
+
+.B "-m"
+.I min
+.RS
+Specify the minimum number of seconds between polling the specified hosts.  Default value is 4096 (1h8m16s).
+.RE
+
+.B "-P"
+.I proxy
+.RS
+Specify an HTTP proxy to send requests through.  The
+.I proxy
+parameter can be in the format of hostname:port.  If the port is omited 8080 is assumed.
+.RE
+
 .B "-H"
 .I host
 .RS
@@ -32,14 +54,6 @@ to update the time.  Many hosts can be specified by multiple
 options.  The
 .I host
 parameter can be in the format of hostname:port.  If the port is omited 80 is assumed.
-.RE
-
-.B "-P"
-.I proxy
-.RS
-Specify an HTTP proxy to send requests through.  The
-.I proxy
-parameter can be in the format of hostname:port.  If the port is omited 8080 is assumed.
 .RE
 
 .SH FILES
