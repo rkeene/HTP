@@ -1,0 +1,10 @@
+                                @@UTIL@@ @@VERS@@
+
+Release information:
+  pkg:  @@UTIL@@ version @@VERS@@
+  url:  http://www.clevervest.com/htp/htpdate-@@VERS@@.tgz
+  web:  http://www.clevervest.com/htp/development.html
+  date: @@DATE@@
+author: Eddy Vervest
+--------------------------------------------------------------------------
+

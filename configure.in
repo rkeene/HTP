@@ -1,0 +1,17 @@
+AC_REVISION($Revision $)
+AC_INIT(htp, 0.3)
+AC_CONFIG_HEADER(config.h)
+
+dnl Checks for programs.
+AC_PROG_CC
+AC_PROG_MAKE_SET
+AC_PROG_INSTALL
+AC_AIX
+AC_GNU_SOURCE
+
+AC_CHECK_HEADERS(netdb.h netinet/in.h stdio.h stdlib.h string.h sys/socket.h sys/time.h sys/types.h time.h unistd.h)
+AC_HEADER_TIME
+
+AC_REPLACE_FUNCS(getopt)
+
+AC_OUTPUT(Makefile)

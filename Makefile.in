@@ -1,0 +1,39 @@
+CC = @CC@
+CFLAGS = -Wall @CFLAGS@ @DEFS@
+CPPFLAGS = @CPPFLAGS@ @DEFS@
+LDFLAGS = @LDFLAGS@ @LIBS@
+INSTALL = @INSTALL@
+EXEEXT = @EXEEXT@
+OBJEXT = @OBJEXT@
+PATH_SEPARATOR = @PATH_SEPARATOR@
+
+prefix = @prefix@
+mandir = @mandir@
+sysconfdir = @sysconfdir@
+datadir = @datadir@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+
+BINS = htpdate$(EXEEXT) htpd$(EXEEXT)
+
+all: $(BINS)
+htpd$(EXEEXT): htpd.o htp.o @LIBOBJS@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o htpd$(EXEEXT) htpd.o htp.o
+htpdate$(EXEEXT): htpdate.o htp.o @LIBOBJS@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o htpdate$(EXEEXT) htpdate.o htp.o
+
+htp.o: htp.c htp.h config.h
+htpdate.o: htpdate.c htp.h config.h
+htpd.o: htpd.c htp.h config.h
+
+.PHONY: clean distclean install all
+clean:
+	rm -f *.o $(BINS) *~
+
+distclean: clean
+	rm -f Makefile config.h config.status config.log
+
+install: all
+	-$(INSTALL) -d $(bindir)
+	$(INSTALL) -m 755 htpd$(EXEEXT) $(bindir)/htpd$(EXEEXT)
+	$(INSTALL) -m 755 htpdate$(EXEEXT) $(bindir)/htpdate$(EXEEXT)
