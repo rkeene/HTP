@@ -5,15 +5,15 @@ AC_DEFUN(DC_DO_NETWORK, [
     AC_SEARCH_LIBS(inet_addr, nsl ws2_32 wsock32, [
       AC_DEFINE(HAVE_INET_ADDR, [], [Have inet_addr()])
     ], [
-      AC_MSG_ERROR(Couldn't find inet_addr or inet_aton)
+      AC_MSG_WARN([could not find inet_addr or inet_aton!])
     ])
   ])
-  AC_SEARCH_LIBS(inet_ntoa, socket nsl,, [ AC_MSG_ERROR(Couldn't find inet_ntoa) ])
-  AC_SEARCH_LIBS(connect, socket nsl,, [ AC_MSG_ERROR(Couldn't find connect) ])
+  AC_SEARCH_LIBS(inet_ntoa, socket nsl ws2_32 wsock32,, [ AC_MSG_WARN([Couldn't find inet_ntoa!]) ])
+  AC_SEARCH_LIBS(connect, socket nsl ws2_32 wsock32,, [ AC_MSG_WARN([Couldn't find connect!]) ])
 ])
 
 AC_DEFUN(DC_DO_WIN32, [
-  AC_CHECK_HEADERS(windows.h windowsx.h winsock2.h)
+  AC_CHECK_HEADERS(windows.h windowsx.h winsock2.h winsvc.h)
   AC_CHECK_LIB(wsock32, main, [
     AC_DEFINE(HAVE_LIBWSOCK32, [], [Have libwsock32])
       LIBS="${LIBS} -lwsock32"

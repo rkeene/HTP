@@ -42,7 +42,9 @@ int main(int argc, char *argv[]) {
 
 	htp_init();
 
+#ifdef HAVE_OPENLOG
 	openlog("htpdate", LOG_PID, LOG_USER);
+#endif
 
 	if ( argc <= 1 ) {
 		printf("Usage: htpdate <host> [<host> [<host> [...]]]\n");

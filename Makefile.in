@@ -18,9 +18,9 @@ BINS = htpdate$(EXEEXT) htpd$(EXEEXT)
 
 all: $(BINS)
 htpd$(EXEEXT): htpd.o htp.o @LIBOBJS@
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o htpd$(EXEEXT) htpd.o htp.o
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o htpd$(EXEEXT) htpd.o htp.o @LIBOBJS@ $(LDFLAGS)
 htpdate$(EXEEXT): htpdate.o htp.o @LIBOBJS@
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -o htpdate$(EXEEXT) htpdate.o htp.o
+	$(CC) $(CPPFLAGS) $(CFLAGS) -o htpdate$(EXEEXT) htpdate.o htp.o @LIBOBJS@ $(LDFLAGS)
 
 htp.o: htp.c htp.h config.h
 htpdate.o: htpdate.c htp.h config.h

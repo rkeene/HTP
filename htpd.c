@@ -40,22 +40,57 @@
 #include <sys/time.h>
 #endif
 #endif
+#ifndef HAVE_GETTIMEOFDAY
+#include "gettimeofday.h"
+#endif
 
 #include "htp.h"
 
 static struct timeserver_st timeservers[128];
 static unsigned int timeind = 0;
 char *http_proxy = NULL;
-uint16_t http_proxy_port = 0;
+unsigned int http_proxy_port = 0;
+
+#ifdef _USE_WIN32_
+SERVICE_STATUS htpServiceStat;
+SERVICE_STATUS_HANDLE htpServiceStat_handle;
+
+void WINAPI htpServiceStart(DWORD argc, LPTSTR *argv) {
+	htpServiceStat.dwServiceType = SERVICE_WIN32;
+	htpServiceStat.dwCurrentState = SERVICE_START_PENDING;
+	htpServiceStat.dwControlsAccepted = SERVICE_ACCEPT_STOP;
+	htpServiceStat.dwWin32ExitCode = 0;
+	htpServiceStat.dwServiceSpecificExitCode = 0;
+	htpServiceStat.dwCheckPoint = 0;
+	htpServiceStat.dwWaitHint = 0;
+
+	htpServiceStat_handle = RegisterServiceCtrlHandler("htpd", NULL); 
+
+	if (htpServiceStat_handle == (SERVICE_STATUS_HANDLE) 0) {
+		return;
+	}
+
+	htpServiceStat.dwCurrentState = SERVICE_RUNNING;
+	htpServiceStat.dwCheckPoint = 0;
+	htpServiceStat.dwWaitHint = 0;
+	SetServiceStatus(htpServiceStat_handle, &htpServiceStat);
+
+	return;
+}
+#endif
 
 static void daemonize(void) {
+#ifndef _USE_WIN32_
+#ifdef HAVE_FORK
 	pid_t pid;
 
 	close(STDIN_FILENO);
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
+#ifdef HAVE_SETSID
 	setsid();
+#endif
 
 	pid = fork();
 
@@ -66,7 +101,18 @@ static void daemonize(void) {
 	if (pid < 0) {
 		exit(EXIT_FAILURE);
 	}
+#endif
+#else
+	/* Create a Win32 Service. */
+	SERVICE_TABLE_ENTRY serviceTable[] = {
+		{"htpd", htpServiceStart},
+		{ NULL, NULL}
+	};
 
+	StartServiceCtrlDispatcher(serviceTable);
+
+	ExitThread(0);
+#endif
 	return;
 }
 
@@ -228,7 +274,9 @@ int main(int argc, char *argv[]) {
 
 	daemonize();
 
+#ifdef HAVE_OPENLOG
 	openlog("htpd", LOG_PID, LOG_DAEMON);
+#endif
 
 	while (1) {
 		newtime = htp_calctime(timeservers, totaltimeservers, http_proxy, http_proxy_port);
@@ -254,7 +302,9 @@ int main(int argc, char *argv[]) {
 			sleeptime = maxsleeptime;
 		}
 
+#ifdef HAVE_SYSLOG
 		syslog(LOG_INFO, "Sleeping for %li seconds.", sleeptime);
+#endif
 
 		sleep(sleeptime);
 	}

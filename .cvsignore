@@ -7,3 +7,5 @@ Makefile
 htpd.conf.5
 htpdate.8
 htpd.8
+htpd.exe
+htpdate.exe

@@ -11,8 +11,12 @@ htpd.8
 htpd.8/*
 htpd.conf.5
 htpd.conf.5/*
+htpd.exe
+htpd.exe/*
 htpd/*
 htpdate
 htpdate.8
 htpdate.8/*
+htpdate.exe
+htpdate.exe/*
 htpdate/*

@@ -1,5 +1,5 @@
 AC_REVISION($Revision $)
-AC_INIT(htp, 0.3.14)
+AC_INIT(htp, 0.3.17)
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -12,8 +12,8 @@ AC_GNU_SOURCE
 AC_CHECK_HEADERS(netdb.h netinet/in.h stdio.h stdlib.h string.h sys/socket.h sys/time.h sys/types.h time.h unistd.h syslog.h math.h)
 AC_HEADER_TIME
 
-AC_REPLACE_FUNCS(getopt)
-AC_CHECK_FUNCS(settimeofday adjtime)
+AC_REPLACE_FUNCS(getopt gettimeofday)
+AC_CHECK_FUNCS(settimeofday adjtime openlog syslog setsid fork)
 
 dnl Network libs
 DC_DO_NETWORK

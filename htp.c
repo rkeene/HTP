@@ -40,6 +40,9 @@
 #include <time.h>
 #endif
 #endif
+#ifndef HAVE_GETTIMEOFDAY
+#include "gettimeofday.h"
+#endif
 
 #include "htp.h"
 
@@ -65,6 +68,7 @@ static time_t mktime_from_rfc2616(const char *date) {
 	timeinfo.tm_hour = atoi(date + 17);
 	timeinfo.tm_min = atoi(date + 20);
 	timeinfo.tm_sec = atoi(date + 23);
+	timeinfo.tm_isdst = 0; /* The date is in UTC and has no DST. */
 
 	/* Determine month. */
 	timeinfo.tm_mon = -1;
@@ -87,20 +91,20 @@ static time_t mktime_from_rfc2616(const char *date) {
 }
 
 double set_clock(time_t timeval, int allow_adj) {
+#ifdef HAVE_SETTIMEOFDAY
 	struct timeval tvinfo;
+#endif
 	struct timeval tvdelta;
-	struct timezone tzinfo;
 	time_t currtime;
 	double retval;
 	int chkret = -1;
 
-	gettimeofday(&tvdelta, &tzinfo);
+	gettimeofday(&tvdelta, NULL);
 
 	currtime = tvdelta.tv_sec;
 
 #ifdef HAVE_ADJTIME
 	if (allow_adj) {
-
 		tvdelta.tv_sec = timeval - tvdelta.tv_sec;
 		tvdelta.tv_usec = 500000 - tvdelta.tv_usec; /* Assume 0.5s of error. */
 		if (tvdelta.tv_usec < 0 && tvdelta.tv_sec > 0) {
@@ -134,7 +138,7 @@ double set_clock(time_t timeval, int allow_adj) {
 		tvinfo.tv_sec = timeval;
 		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
 
-		chkret = settimeofday(&tvinfo, &tzinfo);
+		chkret = settimeofday(&tvinfo, NULL);
 		if (chkret >= 0) {
 			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (set).", (double) (tvinfo.tv_sec - currtime) + (((double) tvinfo.tv_usec) / 1000000.0));
 		}
