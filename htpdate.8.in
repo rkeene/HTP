@@ -1,0 +1,36 @@
+.PU
+.TH HTPDATE 8 "06 Nov 2004" "@PACKAGE_STRING@"
+.SH NAME
+htpdate \- HTTP Time Protocol client
+
+.SH SYNOPSIS
+.B htpdate
+.B "host"
+.RB [ "host" ]
+.RB [ ... ]
+
+.SH DESCRIPTION
+.B htpdate
+sets the system clock using the using "HTP" (the HTTP Time Protocol)
+from remote web servers.
+
+.SH OPTIONS
+.I host
+.RS
+Query the webserver specified by
+.I host
+to update the time.  Many hosts may be specified, but atleast one is required. The
+.I host
+parameter can be in the format of hostname:port.
+.RE
+
+.SH "SEE ALSO"
+.BR htpd.conf (5),
+.BR htpd (8)
+
+.SH AUTHOR
+Eddy Vervest
+.I <Eddy@cleVervest.com>
+.br
+Roy Keene
+.I <htp@rkeene.org>

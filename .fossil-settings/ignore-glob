@@ -1,5 +1,3 @@
-.cvsignore
-.cvsignore/*
 Makefile
 Makefile/*
 config.h
@@ -9,6 +7,12 @@ config.log/*
 config.status
 config.status/*
 htpd
+htpd.8
+htpd.8/*
+htpd.conf.5
+htpd.conf.5/*
 htpd/*
 htpdate
+htpdate.8
+htpdate.8/*
 htpdate/*

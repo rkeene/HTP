@@ -1,0 +1,50 @@
+.PU
+.TH HTPD 8 "06 Nov 2004" "@PACKAGE_STRING@"
+.SH NAME
+htpd \- HTTP Time Protocol daemon
+
+.SH SYNOPSIS
+.B htpd
+.RB [ " \-h " ]
+.RB [ "\-H host" ]
+.RB [ "\-H host" ]
+.RB [ ... ]
+
+.SH DESCRIPTION
+.B htpd
+is a daemon that manages the time using "HTP" (the HTTP Time Protocol) to set the system clock periodically
+from remote web servers.  The configuration file (@sysconfdir@/htpd.conf) is not used if
+.I libconfig
+is not available.
+
+.SH OPTIONS
+.B "-h"
+.RS
+Print usage information and exit in success.
+.RE
+
+.B "-H"
+.I host
+.RS
+Query the webserver specified by
+.I host
+to update the time.  Many hosts can be specified by multiple
+.B "-H"
+options.  The
+.I host
+parameter can be in the format of hostname:port.
+.RE
+
+.SH FILES
+@sysconfdir@/htpd.conf
+
+.SH "SEE ALSO"
+.BR htpd.conf (5),
+.BR htpdate (8)
+
+.SH AUTHOR
+Eddy Vervest
+.I <Eddy@cleVervest.com>
+.br
+Roy Keene
+.I <htp@rkeene.org>

@@ -1,0 +1,9 @@
+config.log
+config.status
+htpdate
+config.h
+htpd
+Makefile
+htpd.conf.5
+htpdate.8
+htpd.8

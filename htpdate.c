@@ -1,6 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "win32.h"
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -35,8 +36,12 @@ int main(int argc, char *argv[]) {
 	char *host = NULL, *portstr = NULL;
 	int port = -1;
 
+	htp_init();
+
 	if ( argc <= 1 ) {
-		printf ("Usage: getdate <host> [<host> [<host> [...]]]\n");
+		printf("Usage: htpdate <host> [<host> [<host> [...]]]\n");
+		printf("  Where each `host' is in the format of:\n");
+		printf("       hostname[:port]\n");
 		return(EXIT_FAILURE);
 	}
 

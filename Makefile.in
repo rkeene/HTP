@@ -1,18 +1,18 @@
-CC = @CC@
-CFLAGS = -Wall @CFLAGS@ @DEFS@
-CPPFLAGS = @CPPFLAGS@ @DEFS@
-LDFLAGS = @LDFLAGS@ @LIBS@
-INSTALL = @INSTALL@
-EXEEXT = @EXEEXT@
-OBJEXT = @OBJEXT@
-PATH_SEPARATOR = @PATH_SEPARATOR@
-
 prefix = @prefix@
 mandir = @mandir@
 sysconfdir = @sysconfdir@
 datadir = @datadir@
 exec_prefix = @exec_prefix@
 bindir = @bindir@
+
+CC = @CC@
+CFLAGS = -Wall @CFLAGS@ @DEFS@
+CPPFLAGS = @CPPFLAGS@ @DEFS@ -DSYSCONFDIR=\"$(sysconfdir)\"
+LDFLAGS = @LDFLAGS@ @LIBS@
+INSTALL = @INSTALL@
+EXEEXT = @EXEEXT@
+OBJEXT = @OBJEXT@
+PATH_SEPARATOR = @PATH_SEPARATOR@
 
 BINS = htpdate$(EXEEXT) htpd$(EXEEXT)
 
@@ -35,5 +35,13 @@ distclean: clean
 
 install: all
 	-$(INSTALL) -d $(bindir)
+	-$(INSTALL) -d $(sysconfdir)
+	-$(INSTALL) -d $(mandir)
+	-$(INSTALL) -d $(mandir)/man5
+	-$(INSTALL) -d $(mandir)/man8
 	$(INSTALL) -m 755 htpd$(EXEEXT) $(bindir)/htpd$(EXEEXT)
 	$(INSTALL) -m 755 htpdate$(EXEEXT) $(bindir)/htpdate$(EXEEXT)
+	$(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf
+	$(INSTALL) -m 644 htpd.8 $(mandir)/man8/htpd.8
+	$(INSTALL) -m 644 htpdate.8 $(mandir)/man8/htpdate.8
+	$(INSTALL) -m 644 htpd.conf.5 $(mandir)/man5/htpdate.conf.5

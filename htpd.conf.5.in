@@ -1,0 +1,40 @@
+.PU
+.TH HTPD.CONF 5 "06 Nov 2004" "@PACKAGE_STRING@"
+.SH NAME
+htpd.conf - htpd configuration file
+
+.SH DESCRIPTION
+The file
+.I htpd.conf
+is read from
+.BR htpd (8)
+at startup.  The configuration file is in white space delimited format.  An example configuration file might look something like this:
+.nf
+	Host www.oc9.org
+	Host www.kernel.org
+.fi
+
+Explanation of configuration elements:
+
+.TP
+.BI "Host " host
+.RS
+Specify an additional web server to query for the time.  Multiple hosts may be specified, atleast one is required (either in the configuration file or on the command line).  The
+.I host
+parameter can be in the format of hostname:port.
+.RE
+
+.SH FILES
+@sysconfdir@/swapd.conf
+
+.SH "SEE ALSO"
+.BR htpd (8),
+.BR htpdate (8)
+
+.SH AUTHOR
+.Sp
+Eddy Vervest
+.I <Eddy@cleVervest.com>
+.br
+Roy Keene
+.I <htp@rkeene.org>

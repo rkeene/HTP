@@ -1,6 +1,7 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "win32.h"
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -17,6 +18,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_LIBCONFIG
+#include <libconfig.h>
+#endif
 #ifdef HAVE_TIME_H
 #include <time.h>
 #else
@@ -26,6 +30,9 @@
 #endif
 
 #include "htp.h"
+
+static struct timeserver_st timeservers[128];
+static unsigned int timeind = 0;
 
 static void daemonize(void) {
 	pid_t pid;
@@ -49,48 +56,106 @@ static void daemonize(void) {
 	return;
 }
 
+#ifdef HAVE_LIBCONFIG
+int add_server(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
+#else
+int add_server(const char *value) {
+#define LC_CBRET_ERROR (-1)
+#define LC_CBRET_OKAY (0)
+#endif
+	char *host = NULL, *portstr = NULL;
+	size_t hostlen = 0;
+	int port = -1;
+	unsigned int  timechk = 0;
+
+	if (value == NULL) {
+		fprintf(stderr, "Error: Argument required.\n");
+		return(LC_CBRET_ERROR);
+	}
+
+	hostlen = strlen(value) + 1;
+	if (hostlen == 1) {
+		fprintf(stderr, "Error: Argument required.\n");
+		return(LC_CBRET_ERROR);
+	}
+
+	host = malloc(hostlen);
+	if (host == NULL) {
+		fprintf(stderr, "Error: Could not allocate memory.\n");
+		return(LC_CBRET_ERROR);
+	}
+	memcpy(host, value, hostlen);
+
+	portstr = strchr(host, ':');
+	if (portstr != NULL) {
+		portstr[0] = '\0';
+
+		portstr++;
+		port = atoi(portstr);
+		if (port <= 0) {
+			fprintf(stderr, "Error: Invalid port specified: %s:%s.\n", host, portstr);
+			free(host);
+			return(LC_CBRET_ERROR);
+		}
+	} else {
+		port = 80;
+	}
+
+	for (timechk = 0; timechk < timeind; timechk++) {
+		if (strcasecmp(timeservers[timechk].host, host) == 0 && timeservers[timechk].port == port) {
+			return(LC_CBRET_OKAY);
+		}
+	}
+
+	timeservers[timeind].host = host;
+	timeservers[timeind].port = port;
+
+	timeind++;
+
+	return(LC_CBRET_OKAY);
+}
+
+#ifdef HAVE_LIBCONFIG
+int print_help(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
+#else
+int print_help(const char *value) {
+#endif
+	printf("Usage: htpd [-H <host> [-H <host> [...]]]\n");
+	printf("   Where each `host' is in format of:\n");
+	printf("       hostname[:port]\n");
+
+	exit(EXIT_SUCCESS);
+}
+
 int main(int argc, char *argv[]) {
-	unsigned int argind = 0, timeind = 0;
 	unsigned int totaltimeservers = 0;
 	unsigned int sleeptime = 86400;
-	struct timeserver_st timeservers[128];
 	time_t newtime = 0;
-	char *host = NULL, *portstr = NULL;
-	int port = -1;
+	int lc_p_ret = 0;
 
-	if ( argc <= 1 ) {
-		printf ("Usage: getdate <host> [<host> [<host> [...]]]\n");
+	htp_init();
+
+#ifdef HAVE_LIBCONFIG
+	lc_register_callback("Host", 'H', LC_VAR_STRING, add_server, NULL);
+	lc_register_callback(NULL, 'h', LC_VAR_NONE, print_help, NULL);
+	lc_p_ret = lc_process(argc, argv, "htpd", LC_CONF_SPACE, SYSCONFDIR "/htpd.conf");
+	if (lc_p_ret < 0) {
+		fprintf(stderr, "Error processing configuration information: %s.\n", lc_geterrstr());
 		return(EXIT_FAILURE);
 	}
+#else
+	unsigned int argind = 0;
 
-	/* Process each argument as a host:port pair. */
-	for (argind = 1; argind < (unsigned int) argc; argind++) {
-		if (argind >= (sizeof(timeservers)/sizeof(timeservers[0]))) {
-			break;
-		}
-
-		host = argv[argind];
-
-		portstr = strchr(host, ':');
-		if (portstr != NULL) {
-			/* Here, we modify argv.. good idea? */
-			portstr[0] = '\0';
-
-			portstr++;
-			port = atoi(portstr);
-			if (port <= 0) {
-				fprintf(stderr, "Invalid port: %s.\n", portstr);
-				continue;
+	for (argind = 1; argind < argc; argind++) {
+		if (argv[argind][0] == '-') {
+			if (argv[argind][1] == 'h') {
+				print_help(NULL);
 			}
-		} else {
-			port = 80;
+			continue;
 		}
-
-		timeservers[timeind].host = host;
-		timeservers[timeind].port = port;
-
-		timeind++;
+		add_server(argv[argind]);
 	}
+#endif
 
 	totaltimeservers = timeind;
 

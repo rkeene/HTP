@@ -1,10 +1,28 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
+/* Define to 1 if you have the `adjtime' function. */
+#undef HAVE_ADJTIME
+
 /* Define to 1 if you have the `getopt' function. */
 #undef HAVE_GETOPT
 
+/* Have inet_addr() */
+#undef HAVE_INET_ADDR
+
+/* Have inet_aton() */
+#undef HAVE_INET_ATON
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have lc_process from libconfig */
+#undef HAVE_LIBCONFIG
+
+/* Define to 1 if you have the <libconfig.h> header file. */
+#undef HAVE_LIBCONFIG_H
+
+/* Have libwsock32 */
+#undef HAVE_LIBWSOCK32
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
@@ -50,6 +68,15 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the <windowsx.h> header file. */
+#undef HAVE_WINDOWSX_H
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Define to 1 if you have the <winsock2.h> header file. */
+#undef HAVE_WINSOCK2_H
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

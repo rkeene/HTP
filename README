@@ -1,20 +1,21 @@
-Htpdate version 0.1
-
-
 Compilation:
+	$ ./configure
+	$ make
+	$ make install
 
-
-make
+Dependencies:
+	a. Libconfig (http://www.rkeene.org/oss/libconfig/)
+		The `libconfig' dependency is optional, but recommended.
+		Without `libconfig' configuration files are not used and
+		the command line interface is reduced.
 
 Usage:
-Print remote time:
-# ./htpdate www.microsoft.com
-Fri, 29 Oct 2004 18:48:44 GMT
+	# htpd [-H host [-H host [...]]]
+	# htpdate host [host [host [...]]]
 
-Set your clock to the remote clock:
-# date -s "`./htpdate.exe www.microsoft.com`"
-Fri Oct 29 20:54:44 WEDT 2004
+	Where `host' can be in the format of:
+		hostname:port
 
-
-30-10-2004
+05-11-2004
 Eddy@cleVervest.com
+htp@rkeene.org

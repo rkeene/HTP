@@ -1,7 +1,11 @@
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
+#include "win32.h"
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
 #ifdef HAVE_NETDB_H
 #include <netdb.h>
 #endif
@@ -20,9 +24,6 @@
 #ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#ifdef HAVE_SYS_TYPES_H
-#include <sys/types.h>
-#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -35,10 +36,6 @@
 #else
 #include <time.h>
 #endif
-#endif
-
-#ifndef HAVE_SETTIMEOFDAY
-#include "settimeofday.h"
 #endif
 
 #include "htp.h"
@@ -72,13 +69,37 @@ static time_t mktime_from_rfc2616(const char *date) {
 }
 
 int set_clock(time_t timeval) {
-	struct timeval tvinfo;
 	int retval = -1;
+	struct timeval tvinfo;
+#ifdef HAVE_ADJTIME
+	struct timeval tvdelta;
 
-	tvinfo.tv_sec = timeval;
-	tvinfo.tv_usec = 0;
+	gettimeofday(&tvdelta, NULL);
 
-	retval = settimeofday(&tvinfo, NULL);
+	tvdelta.tv_sec -= timeval;
+	tvdelta.tv_usec = 0;
+
+#ifdef HAVE_SETTIMEOFDAY
+	if (tvdelta.tv_sec < 60 && tvdelta.tv_sec > -60) {
+#endif
+		retval = adjtime(&tvdelta, NULL);
+#ifdef HAVE_SETTIMEOFDAY
+	} else {
+		retval = -1;
+	}
+#endif
+
+	if (retval < 0) {
+#endif
+#ifdef HAVE_SETTIMEOFDAY
+		tvinfo.tv_sec = timeval;
+		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
+
+		retval = settimeofday(&tvinfo, NULL);
+#endif
+#ifdef HAVE_ADJTIME
+	}
+#endif
 
 	return(retval);
 }
@@ -112,6 +133,10 @@ static time_t get_gmtoffset(void) {
 		timeinfo->tm_hour = 24;
 	}
 	retval -= (timeinfo->tm_hour * 3600) + (timeinfo->tm_min * 60);
+
+	if (retval < -43200) {
+		retval += 86400; 
+	}
 
 	return(retval);
 }
@@ -159,9 +184,9 @@ static time_t get_server_time(const char *host, unsigned int port, const char *p
 
 	/* Send the most simple HEAD request */
 	if (proxyhost == NULL) {
-		snprintf(out_buf, sizeof(out_buf), "HEAD / HTTP/1.0\r\nPramga: no-cache\r\nCache-Control: Max-age=0\r\n\r\n");
+		snprintf(out_buf, sizeof(out_buf), "HEAD / HTTP/1.0\r\nPragma: no-cache\r\nCache-Control: Max-age=0\r\n\r\n");
 	} else {
-		snprintf(out_buf, sizeof(out_buf), "HEAD http://%s:%i/ HTTP/1.0\r\nPramga: no-cache\r\nCache-Control: Max-age=0\r\n\r\n", host, port);
+		snprintf(out_buf, sizeof(out_buf), "HEAD http://%s:%i/ HTTP/1.0\r\nPragma: no-cache\r\nCache-Control: Max-age=0\r\n\r\n", host, port);
 	}
 	send(server_s, out_buf, strlen(out_buf), 0);
 
@@ -185,6 +210,31 @@ static time_t get_server_time(const char *host, unsigned int port, const char *p
 	close(server_s);
 
 	return(retval);
+}
+
+static int htp_net_init(void) {
+#ifdef _USE_WIN32_  
+	WSADATA wsaData;
+
+	if (WSAStartup(MAKEWORD(2, 0), &wsaData)!=0) {
+		return(-1);                           
+	}
+	if (wsaData.wVersion!=MAKEWORD(2, 0)) {
+		/* Cleanup Winsock stuff */    
+		WSACleanup();              
+		return(-1);  
+	}
+#endif
+	return(0);
+}
+
+int htp_init(void) {
+	if (htp_net_init() < 0) {
+		fprintf(stderr, "Error: Couldn't initialze network routines.\n");
+		return(-1);
+	}
+
+	return(0);
 }
 
 int compare_time(const void *a, const void *b) {
@@ -226,6 +276,8 @@ time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeser
 
 	mintime = start_time * 2;
 
+	totaltimes = 0;
+
 	for (timeind = 0; timeind < totaltimeservers; timeind++) {	
 		host = timeservers[timeind].host;
 		port = timeservers[timeind].port;
@@ -237,10 +289,10 @@ time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeser
 		/* Remove the amount of time spent so far. */
 		offset_time = time(NULL) - start_time;
 
-		timevals[timeind] = timeval - offset_time;
+		timevals[totaltimes] = timeval - offset_time;
+		totaltimes++;
 	}
 
-	totaltimes = timeind;
 	meantimeind = totaltimes / 2;
 
 	if (totaltimes == 0) {
@@ -267,11 +319,6 @@ time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeser
 		if (totaltimes == 2) {
 			newtimeval = avgtime;
 		} else {
-//			printf("mintime = %li\n", mintime);
-//			printf("maxtime = %li\n", maxtime);
-//			printf("avgtime = %li\n", avgtime);
-//			printf("meantime = %li\n", meantime);
-
 			stddevtimes = ((double) totaltimes) * 0.34; /* One standard deviation, +/- 34% about the mean. */
 
 			for (timeind = (meantimeind - stddevtimes); timeind < (meantimeind + stddevtimes); timeind++) {
@@ -282,14 +329,11 @@ time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeser
 			stddevavgtime /= totalstddevtimes;
 			stddevavgtime += mintime;
 
-//			printf("stddevavgtime: %li (currtime = %li)\n", stddevavgtime, time(NULL));
-
 			newtimeval = stddevavgtime;
 		}
 	}
 
 	if (newtimeval <= 0) {
-//		fprintf(stderr, "Failed to calculate new time.\n");
 		return(-1);
 	}
 

@@ -1,10 +1,16 @@
                                 @@UTIL@@ @@VERS@@
 
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+http://www.gnu.org/copyleft/gpl.html
+
 Release information:
   pkg:  @@UTIL@@ version @@VERS@@
   url:  http://www.clevervest.com/htp/htpdate-@@VERS@@.tgz
   web:  http://www.clevervest.com/htp/development.html
   date: @@DATE@@
-author: Eddy Vervest
+author: Roy Keene (initial version by Eddy Vervest)
 --------------------------------------------------------------------------
 

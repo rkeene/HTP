@@ -1,5 +1,5 @@
 AC_REVISION($Revision $)
-AC_INIT(htp, 0.3)
+AC_INIT(htp, 0.3.4)
 AC_CONFIG_HEADER(config.h)
 
 dnl Checks for programs.
@@ -12,6 +12,16 @@ AC_GNU_SOURCE
 AC_CHECK_HEADERS(netdb.h netinet/in.h stdio.h stdlib.h string.h sys/socket.h sys/time.h sys/types.h time.h unistd.h)
 AC_HEADER_TIME
 
-AC_REPLACE_FUNCS(getopt settimeofday)
+AC_REPLACE_FUNCS(getopt)
+AC_CHECK_FUNCS(settimeofday adjtime)
 
-AC_OUTPUT(Makefile)
+dnl Network libs
+DC_DO_NETWORK
+
+dnl Checks for Win32 specific things.
+DC_DO_WIN32
+
+dnl Check for libconfig
+DC_ASK_OPTLIB(config, lc_process, libconfig.h, [       Process configuration files using libconfig], libconfig, HAVE_LIBCONFIG, HAVE_LIBCONFIG_H)
+
+AC_OUTPUT(Makefile htpd.8 htpdate.8 htpd.conf.5)
