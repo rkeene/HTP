@@ -205,7 +205,12 @@ int main(int argc, char *argv[]) {
 			delta = 0.0;
 		}
 
-		sleeptime = sleeptime / (1 + (delta / 30.0));
+		/*
+		 *  Divide sleep time by 0.5 if change == 0  (check less frequently)
+		 *  Divide sleep time by 2   if change == 10 (check more frequently)
+		 *  Divide sleep time by 1   if change == 5  (check as frequently)
+		 */
+		sleeptime = sleeptime / (2 + ((delta * (10 - delta)) / (10*10)));
 
 		if (sleeptime < minsleeptime) {
 			sleeptime = minsleeptime;
