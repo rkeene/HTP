@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 		return(EXIT_FAILURE);
 	}
 
-	set_clock(newtime);
+	set_clock(newtime, 0);
 
 	printf("new time: %s", asctime(localtime(&newtime)));
 

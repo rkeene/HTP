@@ -11,7 +11,7 @@ struct timeserver_st {
         unsigned int port;
 };
 
-int set_clock(time_t timeval);
+int set_clock(time_t timeval, int allow_adj);
 time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeservers, const char *proxyhost, unsigned int proxyport);
 int htp_init(void);
 

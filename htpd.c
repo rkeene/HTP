@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 		newtime = htp_calctime(timeservers, totaltimeservers, NULL, 0);
 
 		if (newtime >= 0) {
-			set_clock(newtime);
+			set_clock(newtime, 1);
 		}
 
 		sleep(sleeptime);
