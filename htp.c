@@ -49,6 +49,16 @@ static time_t mktime_from_rfc2616(const char *date) {
 	char *monthinfo[12] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
 	unsigned int i;
 
+	/* Require a valid parameter. */
+	if (date == NULL) {
+		return(-1);
+	}
+
+	/* Reject short strings. */
+	if (strlen(date) < 24) {
+		return(-1);
+	}
+
 	/* Fill in values from RFC-compliant string. */
 	timeinfo.tm_mday = atoi(date + 5);
 	timeinfo.tm_year = atoi(date + 12) - 1900;
@@ -65,6 +75,11 @@ static time_t mktime_from_rfc2616(const char *date) {
 		}
 	}
 
+	/* Reject invalid months. */
+	if (timeinfo.tm_mon < 0) {
+		return(-1);
+	}
+
 	/* Create GMT value */
 	currtime = mktime(&timeinfo);
 
@@ -73,18 +88,18 @@ static time_t mktime_from_rfc2616(const char *date) {
 
 double set_clock(time_t timeval, int allow_adj) {
 	struct timeval tvinfo;
+	struct timeval tvdelta;
+	struct timezone tzinfo;
 	time_t currtime;
 	double retval;
 	int chkret = -1;
-#ifdef HAVE_ADJTIME
-	struct timeval tvdelta;
-#endif
 
-	currtime = time(NULL);
+	gettimeofday(&tvdelta, &tzinfo);
+
+	currtime = tvdelta.tv_sec;
 
 #ifdef HAVE_ADJTIME
 	if (allow_adj) {
-		gettimeofday(&tvdelta, NULL);
 
 		tvdelta.tv_sec = timeval - tvdelta.tv_sec;
 		tvdelta.tv_usec = 500000 - tvdelta.tv_usec; /* Assume 0.5s of error. */
@@ -119,7 +134,7 @@ double set_clock(time_t timeval, int allow_adj) {
 		tvinfo.tv_sec = timeval;
 		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
 
-		chkret = settimeofday(&tvinfo, NULL);
+		chkret = settimeofday(&tvinfo, &tzinfo);
 		if (chkret >= 0) {
 			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (set).", (double) (tvinfo.tv_sec - currtime) + (((double) tvinfo.tv_usec) / 1000000.0));
 		}
@@ -140,32 +155,15 @@ double set_clock(time_t timeval, int allow_adj) {
 /* Calculate the difference between localtime and GMT/UT/UTC. */
 static time_t get_gmtoffset(void) {
 	static time_t retval = -1;
-	time_t dummytime = 604800;
-	struct tm *timeinfo = NULL;
 
 	/* Return saved value. */
 	if (retval != -1) {
 		return(retval);
 	}
 
-	timeinfo = localtime(&dummytime);
-	if (timeinfo == NULL) {
-		return(-1);
-	}
-	if (timeinfo->tm_hour == 0) {
-		timeinfo->tm_hour = 24;
-	}
-	retval = (timeinfo->tm_hour * 3600) + (timeinfo->tm_min * 60);
+	time(&retval);
 
-	timeinfo = gmtime(&dummytime);
-	if (timeinfo == NULL) {
-		retval = -1;
-		return(-1);
-	}
-	if (timeinfo->tm_hour == 0) {
-		timeinfo->tm_hour = 24;
-	}
-	retval -= (timeinfo->tm_hour * 3600) + (timeinfo->tm_min * 60);
+	retval -= mktime(gmtime(&retval));
 
 	if (retval < -43200) {
 		retval += 86400; 
