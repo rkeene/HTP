@@ -84,3 +84,24 @@ AC_DEFUN(DC_ASK_OPTLIB, [
   		;;
   esac
 ])
+
+AC_DEFUN(DC_CHK_OS_INFO, [
+	AC_CANONICAL_HOST
+	AC_SUBST(CFLAGS)
+	AC_SUBST(CPPFLAGS)
+
+	AC_MSG_CHECKING(host operating system)
+	AC_MSG_RESULT($host_os)
+
+	case $host_os in
+		mingw32msvc*)
+			CFLAGS="$CFLAGS -mno-cygwin -mms-bitfields"
+			CPPFLAGS="$CPPFLAGS -mno-cygwin -mms-bitfields"
+			;;
+		cygwin*)
+			CFLAGS="$CFLAGS -mms-bitfields"
+			CPPFLAGS="$CPPFLAGS -mms-bitfields"
+			;;
+
+	esac
+])
