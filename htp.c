@@ -1,13 +1,45 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
 #include <netinet/in.h>
+#endif
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <time.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef TIME_WITH_SYS_TIME
+#include <sys/time.h>
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#else
+#include <time.h>
+#endif
+#endif
+
+#ifndef HAVE_SETTIMEOFDAY
+#include "settimeofday.h"
+#endif
 
 #include "htp.h"
 
@@ -265,8 +297,6 @@ time_t htp_calctime(struct timeserver_st *timeservers, unsigned int totaltimeser
 
 	/* Add back the time this process took. */
 	newtimeval += offset_time;
-
-	printf("new time: %li + %li\n", newtimeval, gmtoffset);
 
 	return(newtimeval + gmtoffset);
 }

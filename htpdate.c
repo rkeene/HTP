@@ -1,13 +1,29 @@
-#include <netdb.h>
-#include <netinet/in.h>
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#ifdef HAVE_STDIO_H
 #include <stdio.h>
+#endif
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#ifdef HAVE_STRING_H
 #include <string.h>
-#include <sys/socket.h>
-#include <sys/time.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
-#include <time.h>
+#endif
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
+#endif
+#ifdef HAVE_TIME_H
+#include <time.h>
+#else
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
+#endif
 
 #include "htp.h"
 
@@ -67,6 +83,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	set_clock(newtime);
+
+	printf("new time: %s", asctime(localtime(&newtime)));
 
 	return(EXIT_SUCCESS);
 }

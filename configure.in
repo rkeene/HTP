@@ -12,6 +12,6 @@ AC_GNU_SOURCE
 AC_CHECK_HEADERS(netdb.h netinet/in.h stdio.h stdlib.h string.h sys/socket.h sys/time.h sys/types.h time.h unistd.h)
 AC_HEADER_TIME
 
-AC_REPLACE_FUNCS(getopt)
+AC_REPLACE_FUNCS(getopt settimeofday)
 
 AC_OUTPUT(Makefile)

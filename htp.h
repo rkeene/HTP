@@ -1,6 +1,10 @@
 #ifndef _RSK_HTP_H
 #define _RSK_HTP_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 struct timeserver_st {
         char *host;
         unsigned int port;

@@ -1,0 +1,14 @@
+.cvsignore
+.cvsignore/*
+Makefile
+Makefile/*
+config.h
+config.h/*
+config.log
+config.log/*
+config.status
+config.status/*
+htpd
+htpd/*
+htpdate
+htpdate/*
