@@ -78,10 +78,15 @@ int set_clock(time_t timeval, int allow_adj) {
 		gettimeofday(&tvdelta, NULL);
 
 		tvdelta.tv_sec = timeval - tvdelta.tv_sec;
-		tvdelta.tv_usec -= 500000; /* Assume 0.5s of error. */
-		if (tvdelta.tv_usec < 0) {
-			tvdelta.tv_sec -= 1;
+		tvdelta.tv_usec = 500000 - tvdelta.tv_usec; /* Assume 0.5s of error. */
+		if (tvdelta.tv_usec < 0 && tvdelta.tv_sec > 0) {
+			/* + -   ->   + + */
+			tvdelta.tv_sec--;
 			tvdelta.tv_usec += 1000000;
+		} else if (tvdelta.tv_sec < 0 && tvdelta.tv_usec > 0) {
+			/* - +   ->   - - */
+			tvdelta.tv_sec++;
+			tvdelta.tv_usec -= 1000000;
 		}
 	}
 
@@ -179,7 +184,7 @@ static time_t get_server_time(const char *host, unsigned int port, const char *p
 
 	/* The web server socket's address information */
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_port = htons(port);
+	server_addr.sin_port = htons(connect_port);
 	server_addr.sin_addr = *(struct in_addr *)*hostinfo -> h_addr_list;
 
 	/* Do a connect (connect() blocks) */

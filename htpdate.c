@@ -34,7 +34,8 @@ int main(int argc, char *argv[]) {
 	struct timeserver_st timeservers[128];
 	time_t newtime = 0;
 	char *host = NULL, *portstr = NULL;
-	int port = -1;
+	char *proxyhost = NULL, *proxyportstr = NULL;
+	int port = -1, proxyport = -1;
 
 	htp_init();
 
@@ -81,7 +82,25 @@ int main(int argc, char *argv[]) {
 		return(EXIT_FAILURE);
 	}
 
-	newtime = htp_calctime(timeservers, totaltimeservers, NULL, 0);
+	proxyhost = getenv("http_proxy");
+	if (proxyhost == NULL) {
+		proxyhost = getenv("HTTP_PROXY");
+	}
+
+	if (proxyhost != NULL) {
+		proxyportstr = strrchr(proxyhost, ':');
+		if (proxyportstr != NULL) {
+			*proxyportstr = '\0';
+			proxyportstr++;
+			proxyport = atoi(proxyportstr);
+			if (proxyport <= 0) {
+				printf("Illegal proxy port: %s.\n", proxyportstr);
+				return(EXIT_FAILURE);
+			}
+		}
+	}
+
+	newtime = htp_calctime(timeservers, totaltimeservers, proxyhost, proxyport);
 
 	if (newtime < 0) {
 		return(EXIT_FAILURE);
