@@ -15,3 +15,4 @@ export CFLAGS LDFLAGS CPPFLAGS LIBS
 make distclean
 ./configure --host=${CROSS} --prefix=${HOME}/root/windows-i386/ && \
 make || exit 1
+${CROSSCMD}strip htpd.exe htpdate.exe

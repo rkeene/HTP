@@ -5,16 +5,18 @@ Compilation:
 
 Dependencies:
 	a. Libconfig (http://www.rkeene.org/oss/libconfig/)
-		The `libconfig' dependency is optional, but recommended.
-		Without `libconfig' configuration files are not used and
-		the command line interface is reduced.
+		The `libconfig' dependency is required.  It allows us to
+		easily parse config files (htpd.conf).
 
 Usage:
-	# htpd [-H host [-H host [...]]]
+	# htpd [-P proxyhost] [-H host [-H host [...]]]
 	# htpdate host [host [host [...]]]
 
 	Where `host' can be in the format of:
 		hostname:port
+
+See the manual pages for more details:
+	htpd(8), htpdate(8), htpd.conf(5)
 
 Eddy@cleVervest.com
 htp@rkeene.org

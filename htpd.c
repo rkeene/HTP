@@ -236,6 +236,7 @@ int add_server(const char *shortvar, const char *var, const char *arguments, con
 }
 
 int print_help(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
+	printf("htpd version " PACKAGE_VERSION "\n");
 	printf("Usage: htpd [-M max] [-m min] [-P proxy] [-H host [-H host [...]]]\n");
 	printf("   Where each `host' is in format of:\n");
 	printf("       hostname[:port]\n");

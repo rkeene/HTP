@@ -47,6 +47,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 	if ( argc <= 1 ) {
+		printf("htpdate version " PACKAGE_VERSION "\n");
 		printf("Usage: htpdate <host> [<host> [<host> [...]]]\n");
 		printf("  Where each `host' is in the format of:\n");
 		printf("       hostname[:port]\n");
