@@ -3,6 +3,9 @@
 #endif
 #include "win32.h"
 
+#ifdef HAVE_MATH_H
+#include <math.h>
+#endif
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #endif
@@ -26,6 +29,9 @@
 #endif
 #ifdef HAVE_LIBCONFIG
 #include <libconfig.h>
+#endif
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
 #endif
 #ifdef HAVE_TIME_H
 #include <time.h>
@@ -66,12 +72,18 @@ static void daemonize(void) {
 
 int set_proxy(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
 	char *host = NULL, *portstr = NULL;
+	char *real_value = NULL, *end_ptr = NULL;
 	size_t hostlen = 0;
 	int port = -1;
 
 	if (value == NULL) {
 		fprintf(stderr, "Error: Argument required.\n");
 		return(LC_CBRET_ERROR);
+	}
+
+	real_value = strstr(value, "://");
+	if (real_value != NULL) {
+		value = real_value + 3;
 	}
 
 	hostlen = strlen(value) + 1;
@@ -86,6 +98,11 @@ int set_proxy(const char *shortvar, const char *var, const char *arguments, cons
 		return(LC_CBRET_ERROR);
 	}
 	memcpy(host, value, hostlen);
+
+	end_ptr = strchr(host, '/');
+	if (end_ptr != NULL) {
+		*end_ptr = '\0';
+	}
 
 	portstr = strchr(host, ':');
 	if (portstr != NULL) {
@@ -110,6 +127,7 @@ int set_proxy(const char *shortvar, const char *var, const char *arguments, cons
 
 int add_server(const char *shortvar, const char *var, const char *arguments, const char *value, lc_flags_t flags, void *extra) {
 	char *host = NULL, *portstr = NULL;
+	char *real_value = NULL, *end_ptr = NULL;
 	size_t hostlen = 0;
 	int port = -1;
 	unsigned int  timechk = 0;
@@ -117,6 +135,11 @@ int add_server(const char *shortvar, const char *var, const char *arguments, con
 	if (value == NULL) {
 		fprintf(stderr, "Error: Argument required.\n");
 		return(LC_CBRET_ERROR);
+	}
+
+	real_value = strstr(value, "://");
+	if (real_value != NULL) {
+		value = real_value + 3;
 	}
 
 	hostlen = strlen(value) + 1;
@@ -131,6 +154,11 @@ int add_server(const char *shortvar, const char *var, const char *arguments, con
 		return(LC_CBRET_ERROR);
 	}
 	memcpy(host, value, hostlen);
+
+	end_ptr = strchr(host, '/');
+	if (end_ptr != NULL) {
+		*end_ptr = '\0';
+	}
 
 	portstr = strchr(host, ':');
 	if (portstr != NULL) {
@@ -196,6 +224,8 @@ int main(int argc, char *argv[]) {
 
 	daemonize();
 
+	openlog("htpd", LOG_PID, LOG_DAEMON);
+
 	while (1) {
 		newtime = htp_calctime(timeservers, totaltimeservers, http_proxy, http_proxy_port);
 
@@ -210,7 +240,8 @@ int main(int argc, char *argv[]) {
 		 *  Divide sleep time by 2   if change == 10 (check more frequently)
 		 *  Divide sleep time by 1   if change == 5  (check as frequently)
 		 */
-		sleeptime = sleeptime / (2 + ((delta * (10 - delta)) / (10*10)));
+		delta = fabs(delta);
+		sleeptime = ((double) sleeptime) / ((1.0 + (delta / 10.0)) / (2.0 - (delta / 10.0)));
 
 		if (sleeptime < minsleeptime) {
 			sleeptime = minsleeptime;
@@ -218,6 +249,8 @@ int main(int argc, char *argv[]) {
 		if (sleeptime > maxsleeptime) {
 			sleeptime = maxsleeptime;
 		}
+
+		syslog(LOG_INFO, "Sleeping for %u seconds.", sleeptime);
 
 		sleep(sleeptime);
 	}

@@ -18,6 +18,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 #ifdef HAVE_TIME_H
 #include <time.h>
 #else
@@ -38,6 +41,8 @@ int main(int argc, char *argv[]) {
 	int port = -1, proxyport = -1;
 
 	htp_init();
+
+	openlog("htpdate", LOG_PID, LOG_USER);
 
 	if ( argc <= 1 ) {
 		printf("Usage: htpdate <host> [<host> [<host> [...]]]\n");

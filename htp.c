@@ -27,6 +27,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+#ifdef HAVE_SYSLOG_H
+#include <syslog.h>
+#endif
 #ifdef TIME_WITH_SYS_TIME
 #include <sys/time.h>
 #include <time.h>
@@ -100,6 +103,10 @@ double set_clock(time_t timeval, int allow_adj) {
 	if ((tvdelta.tv_sec < 60 && tvdelta.tv_sec > -60) && allow_adj) {
 #endif
 		chkret = adjtime(&tvdelta, NULL);
+		if (chkret >= 0) {
+			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (skew).", (double) tvdelta.tv_sec + (((double) tvdelta.tv_usec) / 1000000.0));
+		}
+
 #ifdef HAVE_SETTIMEOFDAY
 	} else {
 		chkret = -1;
@@ -113,6 +120,9 @@ double set_clock(time_t timeval, int allow_adj) {
 		tvinfo.tv_usec = 500000; /* Estimate atleast 0.5s of error. */
 
 		chkret = settimeofday(&tvinfo, NULL);
+		if (chkret >= 0) {
+			syslog(LOG_NOTICE, "Adjusting clock by %f seconds (set).", (double) (tvinfo.tv_sec - currtime) + (((double) tvinfo.tv_usec) / 1000000.0));
+		}
 #endif
 #ifdef HAVE_ADJTIME
 	}
