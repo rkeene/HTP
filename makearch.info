@@ -36,4 +36,4 @@ BEFORE="build/build.sh"
 AFTER=""
 
 # Files matching these (space-seperated) patterns are deleted
-TMPS="*.out HEADER build"
+TMPS="*.out HEADER build work"

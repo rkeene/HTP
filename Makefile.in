@@ -41,7 +41,13 @@ install: all
 	-$(INSTALL) -d $(mandir)/man8
 	$(INSTALL) -m 755 htpd$(EXEEXT) $(bindir)/htpd$(EXEEXT)
 	$(INSTALL) -m 755 htpdate$(EXEEXT) $(bindir)/htpdate$(EXEEXT)
-	$(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf
 	$(INSTALL) -m 644 htpd.8 $(mandir)/man8/htpd.8
 	$(INSTALL) -m 644 htpdate.8 $(mandir)/man8/htpdate.8
 	$(INSTALL) -m 644 htpd.conf.5 $(mandir)/man5/htpdate.conf.5
+	@if [ -f "$(sysconfdir)/htpd.conf" ]; then \
+		echo $(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf.dist; \
+		$(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf.dist; \
+	else \
+		echo $(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf; \
+		$(INSTALL) -m 644 htpd.conf $(sysconfdir)/htpd.conf; \
+	fi
